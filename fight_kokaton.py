@@ -209,6 +209,10 @@ def main():
                 beam = Beam(bird)
                 beams.append(beam)  # リストに追加
         screen.blit(bg_img, [0, 0])
+
+        if tmr % (5*60) == 0:
+            for n in range(tmr//(5*60)+5 - len(bombs)):
+                bombs.append(Bomb((255, 0, 0), 10))
         
         for bomb in bombs:
             if bird.rct.colliderect(bomb.rct):
