@@ -152,6 +152,7 @@ class Score:
         self.color = (0, 0, 255)  # 青
         self.score = 0
         self.update_img()
+        
     def update_img(self):
         self.img = self.fonto.render(f"スコア：{self.score}", 0, self.color)
         self.rct = self.img.get_rect()
