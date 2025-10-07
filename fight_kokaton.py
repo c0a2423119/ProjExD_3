@@ -3,7 +3,7 @@ import random
 import sys
 import time
 import pygame as pg
-
+import math
 
 WIDTH = 1100  # ゲームウィンドウの幅
 HEIGHT = 650  # ゲームウィンドウの高さ
@@ -56,7 +56,7 @@ class Bird:
         self.img = __class__.imgs[(+5, 0)]
         self.rct: pg.Rect = self.img.get_rect()
         self.rct.center = xy
-
+        
     def change_img(self, num: int, screen: pg.Surface):
         """
         こうかとん画像を切り替え，画面に転送する
@@ -83,6 +83,7 @@ class Bird:
         if not (sum_mv[0] == 0 and sum_mv[1] == 0):
             self.img = __class__.imgs[tuple(sum_mv)]
         screen.blit(self.img, self.rct)
+
 
 
 class Beam:
@@ -158,6 +159,26 @@ class Score:
     def update(self, screen: pg.Surface):
         screen.blit(self.img, self.rct)
 
+class Explosion:
+    def __init__(self, center: tuple[int, int]):
+        base_img = pg.image.load("fig/explosion.gif")
+        img1 = base_img
+        img2 = pg.transform.flip(base_img, True, True)
+        self.imgs = [img1, img2]
+        self.rct = self.imgs[0].get_rect()
+        self.rct.center = center  # 爆発する位置（爆弾の中心）
+        self.life = 50  # 表示時間（フレーム単位）
+
+    def update(self, screen: pg.Surface):
+        """爆発を更新・描画"""
+        self.life -= 1
+        if self.life > 0:
+            # 点滅頻度を下げてチラつきを軽減
+            img = self.imgs[(self.life // 4) % 2]
+            screen.blit(img, self.rct)
+
+  
+
 
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
@@ -170,6 +191,7 @@ def main():
         bombs.append(Bomb((255, 0, 0), 10))
     beam = None  # ゲーム初期化時にはビームは存在しない
     beams = [] # ビームを格納するリスト 
+    explosions = []  # 爆発エフェクトを格納するリスト
     score=Score()
     clock = pg.time.Clock()
     tmr = 0
@@ -200,6 +222,7 @@ def main():
                     continue
                 if bomb.rct.colliderect(beam.rct):
                     # ビームと爆弾の衝突判定
+                    explosions.append(Explosion(bomb.rct.center))  # 爆発エフェクトを追加
                     beams[n]=None
                     bombs[i]=None
                     bird.change_img(6, screen)
@@ -220,6 +243,9 @@ def main():
         for bomb in bombs:
             bomb.update(screen)
         score.update(screen)
+        for explosion in explosions:
+            explosion.update(screen)
+        explosions = [explosion for explosion in explosions if explosion.life > 0] 
         pg.display.update()
         tmr += 1
         clock.tick(50)
