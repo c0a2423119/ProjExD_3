@@ -56,6 +56,7 @@ class Bird:
         self.img = __class__.imgs[(+5, 0)]
         self.rct: pg.Rect = self.img.get_rect()
         self.rct.center = xy
+        self.dire=(+5,0)
         
     def change_img(self, num: int, screen: pg.Surface):
         """
@@ -81,6 +82,7 @@ class Bird:
         if check_bound(self.rct) != (True, True):
             self.rct.move_ip(-sum_mv[0], -sum_mv[1])
         if not (sum_mv[0] == 0 and sum_mv[1] == 0):
+            self.dire=tuple(sum_mv)
             self.img = __class__.imgs[tuple(sum_mv)]
         screen.blit(self.img, self.rct)
 
@@ -95,11 +97,14 @@ class Beam:
         ビーム画像Surfaceを生成する
         引数 bird：ビームを放つこうかとん（Birdインスタンス）
         """
-        self.img = pg.image.load(f"fig/beam.png")  # ビームSurface
+        self.vx, self.vy = bird.dire  # こうかとんの向きベクトルをビームの速度ベクトルに設定
+        theta = math.degrees(math.atan2(-self.vy, self.vx))
+        self.img = pg.transform.rotozoom(pg.image.load("fig/beam.png"), theta, 1.0) # ビームSurface
         self.rct = self.img.get_rect()  # ビームRect
-        self.rct.centery = bird.rct.centery  # こうかとんの中心縦座標
-        self.rct.left = bird.rct.right  # こうかとんの右座標
-        self.vx, self.vy = +5, 0
+        bw=self.rct.width  # ビームの幅
+        bh=self.rct.height  # ビームの高さ
+        self.rct.centerx = bird.rct.centerx + (bw * self.vx / 5)
+        self.rct.centery = bird.rct.centery + (bh * self.vy / 5)
 
     def update(self, screen: pg.Surface):
         """
